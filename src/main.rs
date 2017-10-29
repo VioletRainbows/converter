@@ -1,18 +1,6 @@
-// Usage: converter [SOURCE] [DEST]
-// Convert ISO-8859-1 SOURCE to UTF-8 DEST
-//
-// SOURCE: STDIN or FILE
-// DEST: STDOUT or FILE
-//
-// Examples:
-// converter < latin1.txt > utf8.xml
-// converter latin1.txt utf8.xml
-// converter latin1.txt                # Output to STDOUT
-// converter                           # CTRL+D to exit
-
+#[macro_use]
+extern crate clap;
 extern crate encoding;
-
-use std::io::{self, Read};
 
 use encoding::{DecoderTrap, Encoding};
 use encoding::all::ISO_8859_1;
@@ -21,6 +9,7 @@ use std::env;
 use std::fs::File;
 use std::io::prelude::*;
 use std::error::Error;
+use std::io::{self, Read};
 
 const BUFSIZE: usize = 8192;
 
@@ -51,6 +40,22 @@ impl Config<Box<io::Read>, Box<io::Write>> {
 }
 
 fn main() {
+    // This takes care of --help and --version, but `env::args()` is still
+    // what drives the application.
+    let _ = clap_app!(converter =>
+        (version: "0.1-dev")
+        (author: "Mia Boulay <mia.boulay@linux.com>")
+        (about: "Convert ISO-8859-1 SOURCE to UTF-8 DEST")
+        (usage: "converter [FLAGS] [SOURCE] [DEST]")
+        (@arg SOURCE: "STDIN or FILE")
+        (@arg DEST: "STDOUT or FILE")
+        (after_help: "EXAMPLES:
+    converter < latin1.txt > utf8.xml
+    converter latin1.txt utf8.xml
+    converter latin1.txt                # Output to STDOUT
+    converter                           # CTRL+D to exit")
+    ).get_matches();
+
     let args: Vec<String> = env::args().collect();
     let mut config = Config::new(&args).unwrap();
 
