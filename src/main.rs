@@ -1,14 +1,14 @@
-// Usage: convert [SOURCE] [DEST]
+// Usage: converter [SOURCE] [DEST]
 // Convert ISO-8859-1 SOURCE to UTF-8 DEST
 //
 // SOURCE: STDIN or FILE
 // DEST: STDOUT or FILE
 //
 // Examples:
-// convert < latin1.txt > utf8.xml
-// convert latin1.txt utf8.xml
-// convert latin1.txt                # Output to STDOUT
-// convert                           # CTRL+D to exit
+// converter < latin1.txt > utf8.xml
+// converter latin1.txt utf8.xml
+// converter latin1.txt                # Output to STDOUT
+// converter                           # CTRL+D to exit
 
 extern crate encoding;
 
