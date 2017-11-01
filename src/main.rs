@@ -59,7 +59,7 @@ fn main() {
     // This takes care of --help and --version, but `env::args()` is still
     // what drives the application.
     let _ = clap_app!(converter =>
-        (version: "0.1-dev")
+        (version: "0.1")
         (author: "Mia Boulay <mia.boulay@linux.com>")
         (about: "Convert ISO-8859-1 SOURCE to UTF-8 DEST")
         (usage: "converter [FLAGS] [SOURCE] [DEST]")
