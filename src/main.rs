@@ -73,3 +73,20 @@ fn main() {
         count != 0
     } {}
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn decoding() {
+        // Letter é (different in ISO-8859-1 and UTF-8)
+        assert_eq!(iso_8859_1_to_utf_8(&[0xe9]).unwrap().as_bytes(), [0xc3, 0xa9]);
+
+        // Letter 'a'
+        assert_eq!(iso_8859_1_to_utf_8(&[0x61]).unwrap(), "a");
+
+        // Empty
+        assert_eq!(iso_8859_1_to_utf_8(&[]).unwrap(), "");
+    }
+}
