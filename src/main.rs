@@ -102,14 +102,10 @@ mod test {
             &[0x41, 0x42, 0x43, 0x61, 0x62, 0x63, 0x20, 0xea, 0xfd, 0xbf, 0xf7]
         );
         let mut dest = Cursor::new(vec![0u8; 20]);
-
         decode(&mut source, &mut dest).unwrap();
 
         let pos: usize = dest.position() as usize;
-        assert_eq!(dest.get_mut()[0..pos],
-                   [0x41, 0x42, 0x43, 0x61, 0x62, 0x63, 0x20,
-                    0xc3, 0xaa, 0xc3, 0xbd, 0xc2, 0xbf,
-                    0xc3, 0xb7]
-        );
+        // Works as string is already in UTF-8
+        assert_eq!(&dest.get_mut()[0..pos], "ABCabc êý¿÷".as_bytes());
     }
 }
