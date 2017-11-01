@@ -39,6 +39,7 @@ impl Config<Box<io::Read>, Box<io::Write>> {
     }
 }
 
+// Works for ISO-8859-1, windows-1252 and latin1
 fn iso_8859_1_to_utf_8(input: &[u8]) -> Result<String, String> {
     Ok(ISO_8859_1.decode(input, DecoderTrap::Strict)?)
 }
