@@ -7,9 +7,8 @@ use encoding::all::ISO_8859_1;
 
 use std::env;
 use std::fs::File;
-use std::io::prelude::*;
 use std::error::Error;
-use std::io::{self, Read};
+use std::io;
 
 const BUFSIZE: usize = 8192;
 
@@ -43,6 +42,17 @@ fn iso_8859_1_to_utf_8(input: &[u8]) -> Result<String, String> {
     Ok(ISO_8859_1.decode(input, DecoderTrap::Strict)?)
 }
 
+fn decode<R: io::Read, W: io::Write>(source: &mut R, dest: &mut W) -> Result<(), Box<Error>>{
+    // Reading and converting BUFSIZE bytes at a time
+    let mut bytes = vec![0u8; BUFSIZE];
+    while {
+        let count = source.read(bytes.as_mut_slice()).unwrap();
+        dest.write(iso_8859_1_to_utf_8(&bytes[0..count])?.as_bytes())?;
+        count != 0
+    } {}
+    Ok(())
+}
+
 fn main() {
     // This takes care of --help and --version, but `env::args()` is still
     // what drives the application.
@@ -63,23 +73,15 @@ fn main() {
     let args: Vec<String> = env::args().collect();
     let mut config = Config::new(&args).unwrap();
 
-    // Reading and converting BUFSIZE bytes at a time
-    let mut bytes = vec![0u8; BUFSIZE];
-    while {
-        let count = config.source.read(bytes.as_mut_slice()).unwrap();
-        config.dest.write(
-            iso_8859_1_to_utf_8(&bytes[0..count]).unwrap().as_bytes()
-        ).unwrap();
-        count != 0
-    } {}
+    decode(&mut config.source, &mut config.dest).unwrap();
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
-
+    
     #[test]
-    fn decoding() {
+    fn it_decode_iso_8859_1_to_utf_8() {
         // Letter é (different in ISO-8859-1 and UTF-8)
         assert_eq!(iso_8859_1_to_utf_8(&[0xe9]).unwrap().as_bytes(), [0xc3, 0xa9]);
 
@@ -88,5 +90,26 @@ mod test {
 
         // Empty
         assert_eq!(iso_8859_1_to_utf_8(&[]).unwrap(), "");
+    }
+
+    #[test]
+    fn it_decode() {
+        use std::io::Cursor;
+        use std::str;
+        
+        // Gives: ABCabc êý¿÷
+        let mut source = Cursor::new(
+            &[0x41, 0x42, 0x43, 0x61, 0x62, 0x63, 0x20, 0xea, 0xfd, 0xbf, 0xf7]
+        );
+        let mut dest = Cursor::new(vec![0u8; 20]);
+
+        decode(&mut source, &mut dest).unwrap();
+
+        let pos: usize = dest.position() as usize;
+        assert_eq!(dest.get_mut()[0..pos],
+                   [0x41, 0x42, 0x43, 0x61, 0x62, 0x63, 0x20,
+                    0xc3, 0xaa, 0xc3, 0xbd, 0xc2, 0xbf,
+                    0xc3, 0xb7]
+        );
     }
 }
