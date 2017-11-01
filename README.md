@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/VioletRainbows/converter.svg?branch=master)](https://travis-ci.org/VioletRainbows/converter)
+
 # Converter
 
 ISO-8859-1 (latin-1) to UTF-8 conversion
