@@ -39,6 +39,10 @@ impl Config<Box<io::Read>, Box<io::Write>> {
     }
 }
 
+fn iso_8859_1_to_utf_8(input: &[u8]) -> Result<String, String> {
+    Ok(ISO_8859_1.decode(input, DecoderTrap::Strict)?)
+}
+
 fn main() {
     // This takes care of --help and --version, but `env::args()` is still
     // what drives the application.
@@ -64,11 +68,7 @@ fn main() {
     while {
         let count = config.source.read(bytes.as_mut_slice()).unwrap();
         config.dest.write(
-             // Convert from ISO-8859-1 (latin-1) to UTF-8
-             ISO_8859_1
-                .decode(&mut bytes[0..count], DecoderTrap::Strict)
-                .unwrap()
-                .as_bytes(),
+            iso_8859_1_to_utf_8(&bytes[0..count]).unwrap().as_bytes()
         ).unwrap();
         count != 0
     } {}
