@@ -9,6 +9,7 @@ use std::env;
 use std::fs::File;
 use std::error::Error;
 use std::io;
+use std::process;
 
 const BUFSIZE: usize = 8192;
 
@@ -46,7 +47,7 @@ fn decode<R: io::Read, W: io::Write>(source: &mut R, dest: &mut W) -> Result<(),
     // Reading and converting BUFSIZE bytes at a time
     let mut bytes = vec![0u8; BUFSIZE];
     while {
-        let count = source.read(bytes.as_mut_slice()).unwrap();
+        let count = source.read(bytes.as_mut_slice())?;
         dest.write(iso_8859_1_to_utf_8(&bytes[0..count])?.as_bytes())?;
         count != 0
     } {}
@@ -71,9 +72,26 @@ fn main() {
     ).get_matches();
 
     let args: Vec<String> = env::args().collect();
-    let mut config = Config::new(&args).unwrap();
+    let mut config = match Config::new(&args) {
+        Ok(value) => value,
+        Err(error) => {
+            eprintln!("There was a file problem: {}", error);
+            process::exit(1);
+        },
+    };
 
-    decode(&mut config.source, &mut config.dest).unwrap();
+    // I tried to pass binaries and no error came, so I do not know
+    // how to generate an error for this case. It would make sense
+    // since ISO-8859-1 only works on single byte, thus if a byte
+    // doesn't need a new mapping, just return it? Anyway, leaving the
+    // check.
+    match decode(&mut config.source, &mut config.dest) {
+        Err(error) => {
+            eprintln!("There was an encoding problem: {}", error);
+            process::exit(1);
+        },
+        _ => (),
+    };
 }
 
 #[cfg(test)]
@@ -82,7 +100,7 @@ mod test {
     
     #[test]
     fn it_decode_iso_8859_1_to_utf_8() {
-        // Letter é (different in ISO-8859-1 and UTF-8)
+        // Letter 'é' (different in ISO-8859-1 and UTF-8)
         assert_eq!(iso_8859_1_to_utf_8(&[0xe9]).unwrap().as_bytes(), [0xc3, 0xa9]);
 
         // Letter 'a'
@@ -95,7 +113,6 @@ mod test {
     #[test]
     fn it_decode() {
         use std::io::Cursor;
-        use std::str;
         
         // Gives "ABCabc êý¿÷" in ISO-8859-1
         let mut source = Cursor::new(
