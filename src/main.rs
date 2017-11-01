@@ -97,15 +97,15 @@ mod test {
         use std::io::Cursor;
         use std::str;
         
-        // Gives: ABCabc êý¿÷
+        // Gives "ABCabc êý¿÷" in ISO-8859-1
         let mut source = Cursor::new(
             &[0x41, 0x42, 0x43, 0x61, 0x62, 0x63, 0x20, 0xea, 0xfd, 0xbf, 0xf7]
         );
-        let mut dest = Cursor::new(vec![0u8; 20]);
+        let mut dest = Cursor::new(vec![0u8]);
+        
         decode(&mut source, &mut dest).unwrap();
 
-        let pos: usize = dest.position() as usize;
         // Works as string is already in UTF-8
-        assert_eq!(&dest.get_mut()[0..pos], "ABCabc êý¿÷".as_bytes());
+        assert_eq!(&dest.get_ref()[..], "ABCabc êý¿÷".as_bytes());
     }
 }
