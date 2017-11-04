@@ -9,7 +9,6 @@ use std::env;
 use std::error::Error;
 use std::fs::File;
 use std::io::{Read, Write, stdin, stdout};
-use std::io::prelude::*;
 use std::io::BufReader;
 use std::io::BufWriter;
 use std::process;
@@ -135,6 +134,6 @@ mod test {
         decode(&mut source, &mut dest).unwrap();
 
         // Works as string is already in UTF-8
-        assert_eq!(&dest.get_ref()[..], "ABCabc êý¿÷".as_bytes());
+        assert_eq!(String::from_utf8(dest.into_inner()).unwrap(), "ABCabc êý¿÷");
     }
 }
